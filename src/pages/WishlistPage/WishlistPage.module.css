@@ -1,0 +1,154 @@
+.page {
+  width: 100%;
+  max-width: 700px;
+
+  margin: 0 auto;
+
+  padding: 24px 16px 48px;
+}
+
+.heading {
+  margin-bottom: 18px;
+}
+
+.heading h1 {
+  margin: 0;
+
+  font-size: 1.8rem;
+}
+
+.heading p {
+  margin: 5px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.9rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.card {
+  min-height: 120px;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  padding: 16px;
+
+  border: 1px solid
+    var(--color-border);
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--color-surface);
+}
+
+.bookInfo h2 {
+  margin: 0 0 6px;
+
+  font-size: 1rem;
+}
+
+.bookInfo p {
+  margin: 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.82rem;
+}
+
+.actions {
+  margin-top: 24px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 28px;
+}
+
+.available,
+.unavailable {
+  padding: 5px 8px;
+
+  border-radius: 999px;
+
+  font-size: 0.72rem;
+}
+
+.available {
+  background:
+    var(--color-primary-soft);
+
+  color:
+    var(--color-primary-dark);
+}
+
+.unavailable {
+  background: #eeeeee;
+
+  color:
+    var(--color-text-muted);
+}
+
+.actions button {
+  border: none;
+
+  background: transparent;
+
+  color:
+    var(--color-danger);
+
+  font-size: 0.78rem;
+}
+
+.empty {
+  padding: 60px 20px;
+
+  text-align: center;
+
+  color:
+    var(--color-text-muted);
+}
+
+.empty h2 {
+  margin: 0 0 8px;
+
+  color:
+    var(--color-text);
+}
+
+.empty p {
+  margin-bottom: 20px;
+}
+
+.empty a {
+  color:
+    var(--color-primary);
+
+  font-weight: 600;
+}
+
+.message {
+  text-align: center;
+
+  color:
+    var(--color-text-muted);
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding:
+      32px 24px
+      64px;
+  }
+}

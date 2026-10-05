@@ -1,0 +1,180 @@
+.page {
+  width: 100%;
+  max-width: 760px;
+
+  margin: 0 auto;
+
+  padding: 24px 16px 48px;
+}
+
+.heading {
+  margin-bottom: 18px;
+}
+
+.heading h1 {
+  margin: 0;
+
+  font-size: 1.8rem;
+}
+
+.heading p {
+  margin: 6px 0 0;
+
+  max-width: 360px;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 3px;
+
+  padding: 4px;
+
+  margin-bottom: 14px;
+
+  border: 1px solid
+    var(--color-border);
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--color-surface);
+}
+
+.tabs button {
+  min-height: 40px;
+
+  padding: 4px;
+
+  border: none;
+
+  border-radius:
+    var(--radius-sm);
+
+  background: transparent;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.72rem;
+}
+
+.tabs .activeTab {
+  background:
+    var(--color-primary-soft);
+
+  color:
+    var(--color-primary-dark);
+
+  font-weight: 600;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+.card {
+  padding: 14px;
+
+  border: 1px solid
+    var(--color-border);
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--color-surface);
+}
+
+.card h2 {
+  margin: 0 0 12px;
+
+  font-size: 1rem;
+}
+
+.card p {
+  margin: 5px 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.8rem;
+}
+
+.dateBox {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  margin-bottom: 8px;
+
+  padding: 10px;
+
+  border: 1px solid
+    var(--color-border);
+
+  border-radius:
+    var(--radius-sm);
+}
+
+.dateBox span {
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.7rem;
+}
+
+.dateBox strong {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.due {
+  margin-bottom: 10px;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.75rem;
+}
+
+.reservationStatus {
+  color:
+    var(--color-primary-dark) !important;
+}
+
+.empty {
+  padding: 40px 16px;
+
+  text-align: center;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.9rem;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding:
+      32px 24px
+      64px;
+  }
+
+  .tabs button {
+    font-size: 0.8rem;
+  }
+}

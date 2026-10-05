@@ -1,0 +1,205 @@
+:root {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+
+  color: #1f2a23;
+  background: #eef7f0;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  --color-bg: #eef7f0;
+
+  --color-surface: #ffffff;
+
+  --color-surface-soft: #e4f1e6;
+
+  --color-primary: #3f7f54;
+
+  --color-primary-dark: #2f6341;
+
+  --color-primary-soft: #d8eadc;
+
+  --color-text: #1f2a23;
+
+  --color-text-muted: #7a857e;
+
+  --color-border: #d9e1dc;
+
+  --color-danger: #c84d4d;
+
+  --radius-sm: 10px;
+
+  --radius-md: 14px;
+
+  --radius-lg: 18px;
+
+  --shadow-soft:
+    0 4px 16px
+    rgba(31, 42, 35, 0.08);
+
+  --space-1: 4px;
+
+  --space-2: 8px;
+
+  --space-3: 12px;
+
+  --space-4: 16px;
+
+  --space-5: 20px;
+
+  --space-6: 24px;
+
+  --space-8: 32px;
+}
+
+/* DARK MODE */
+
+[data-theme='dark'] {
+  --color-bg: #0d1711;
+
+  --color-surface: #142019;
+
+  --color-surface-soft: #1c3023;
+
+  --color-primary: #83b893;
+
+  --color-primary-dark: #a7d2b3;
+
+  --color-primary-soft: #24452f;
+
+  --color-text: #edf5ef;
+
+  --color-text-muted: #9caaa0;
+
+  --color-border: #304038;
+
+  --color-danger: #ef8e8e;
+
+  --shadow-soft:
+    0 4px 16px
+    rgba(0, 0, 0, 0.25);
+}
+
+/* RESET */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+
+  background:
+    var(--color-bg);
+}
+
+body {
+  margin: 0;
+
+  min-width: 320px;
+  min-height: 100vh;
+
+  background:
+    var(--color-bg);
+
+  color:
+    var(--color-text);
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* FORM ELEMENTS */
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid
+    var(--color-primary);
+
+  outline-offset: 2px;
+}
+
+input,
+select,
+textarea {
+  color:
+    var(--color-text);
+
+  background:
+    var(--color-surface);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color:
+    var(--color-text-muted);
+}
+
+/* IMAGES */
+
+img {
+  display: block;
+
+  max-width: 100%;
+}
+
+/* LINKS */
+
+a {
+  color: inherit;
+
+  text-decoration: none;
+}
+
+/* TEXT */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  overflow-wrap: break-word;
+}
+
+/* MAIN */
+
+main {
+  width: 100%;
+}
+
+/* SELECTION */
+
+::selection {
+  background:
+    var(--color-primary-soft);
+
+  color:
+    var(--color-text);
+}
