@@ -1,6 +1,8 @@
+import { memo, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
 import Logo from '../Logo/Logo'
+import ConfirmationModal from '../ConfirmationModal/ConfirmationModal'
 import { logoutUser } from '../../services/authService'
 
 import styles from './Sidebar.module.css'
@@ -15,13 +17,24 @@ function Sidebar({
   onClose,
 }: SidebarProps) {
   const navigate = useNavigate()
+  const [confirmingLogout, setConfirmingLogout] =
+    useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   const handleLogout = async () => {
-    await logoutUser()
+    if (loggingOut) return
 
-    onClose()
+    try {
+      setLoggingOut(true)
+      await logoutUser()
 
-    navigate('/login')
+      onClose()
+
+      navigate('/login')
+    } finally {
+      setLoggingOut(false)
+      setConfirmingLogout(false)
+    }
   }
 
   return (
@@ -120,13 +133,26 @@ function Sidebar({
         <button
           type="button"
           className={styles.logout}
-          onClick={handleLogout}
+          onClick={() => setConfirmingLogout(true)}
         >
           Logout
         </button>
       </aside>
+
+      {confirmingLogout && (
+        <ConfirmationModal
+          title="Log out?"
+          description="Are you sure you want to log out of SAVIA?"
+          confirmLabel="Log out"
+          loading={loggingOut}
+          onConfirm={() => {
+            void handleLogout()
+          }}
+          onCancel={() => setConfirmingLogout(false)}
+        />
+      )}
     </>
   )
 }
 
-export default Sidebar
+export default memo(Sidebar)

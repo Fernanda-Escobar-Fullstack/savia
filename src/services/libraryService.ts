@@ -7,7 +7,6 @@ import {
   onSnapshot,
   query,
   runTransaction,
-  setDoc,
   where,
 } from 'firebase/firestore'
 
@@ -23,33 +22,33 @@ export interface BookAvailability {
   activeLoanId: string | null
 }
 
+const defaultAvailability: BookAvailability = {
+  available: true,
+  borrowedBy: null,
+  activeLoanId: null,
+}
+
+function reservationId(userId: string, bookId: string) {
+  return `${userId}_${bookId}`
+}
+
+// Escuchar la disponibilidad del libro.
 export function subscribeToBookAvailability(
   bookId: string,
   callback: (availability: BookAvailability) => void
 ) {
-  const statusReference = doc(
-    db,
-    'bookStatus',
-    bookId
-  )
-
   return onSnapshot(
-    statusReference,
+    doc(db, 'bookStatus', bookId),
     (snapshot) => {
       if (!snapshot.exists()) {
-        callback({
-          available: true,
-          borrowedBy: null,
-          activeLoanId: null,
-        })
-
+        callback(defaultAvailability)
         return
       }
 
       const data = snapshot.data()
 
       callback({
-        available: data.available ?? true,
+        available: data.available !== false,
         borrowedBy: data.borrowedBy ?? null,
         activeLoanId: data.activeLoanId ?? null,
       })
@@ -60,264 +59,329 @@ export function subscribeToBookAvailability(
 export async function getBookAvailability(
   bookId: string
 ): Promise<BookAvailability> {
-  const statusReference = doc(
-    db,
-    'bookStatus',
-    bookId
-  )
-
   const snapshot = await getDoc(
-    statusReference
+    doc(db, 'bookStatus', bookId)
   )
 
   if (!snapshot.exists()) {
-    return {
-      available: true,
-      borrowedBy: null,
-      activeLoanId: null,
-    }
+    return defaultAvailability
   }
 
   const data = snapshot.data()
 
   return {
-    available: data.available ?? true,
+    available: data.available !== false,
     borrowedBy: data.borrowedBy ?? null,
     activeLoanId: data.activeLoanId ?? null,
   }
 }
 
-export async function borrowBook(
+// Saber si ESTE usuario ya reservó el libro.
+export function subscribeToUserReservation(
   userId: string,
-  book: BookDetails
+  bookId: string,
+  callback: (reserved: boolean) => void
 ) {
-  const loanReference = doc(
-    collection(db, 'loans')
-  )
-
-  const statusReference = doc(
+  const reference = doc(
     db,
-    'bookStatus',
-    book.id
+    'reservations',
+    reservationId(userId, bookId)
   )
 
-  const borrowedDate = new Date()
-
-  const dueDate = new Date(
-    borrowedDate
-  )
-
-  dueDate.setDate(
-    dueDate.getDate() + 21
-  )
-
-  await runTransaction(
-    db,
-    async (transaction) => {
-      const statusSnapshot =
-        await transaction.get(
-          statusReference
-        )
-
-      if (
-        statusSnapshot.exists() &&
-        statusSnapshot.data().available === false
-      ) {
-        throw new Error(
-          'This book is currently unavailable.'
-        )
-      }
-
-      transaction.set(
-        loanReference,
-        {
-          userId,
-          bookId: book.id,
-
-          title: book.title,
-          authorName: book.authorName,
-          coverId: book.coverId ?? null,
-
-          borrowedAt:
-            Timestamp.fromDate(
-              borrowedDate
-            ),
-
-          dueDate:
-            Timestamp.fromDate(
-              dueDate
-            ),
-
-          returnedAt: null,
-
-          status: 'active',
-        }
-      )
-
-      transaction.set(
-        statusReference,
-        {
-          available: false,
-          borrowedBy: userId,
-          activeLoanId: loanReference.id,
-        }
-      )
-    }
-  )
+  return onSnapshot(reference, (snapshot) => {
+    callback(
+      snapshot.exists() &&
+      snapshot.data().status === 'active'
+    )
+  })
 }
 
-export async function returnBook(
-  loan: Loan
-) {
-  const loanReference = doc(
-    db,
-    'loans',
-    loan.id
-  )
-
-  const statusReference = doc(
-    db,
-    'bookStatus',
-    loan.bookId
-  )
-
-  await runTransaction(
-    db,
-    async (transaction) => {
-      transaction.update(
-        loanReference,
-        {
-          status: 'returned',
-          returnedAt: Timestamp.now(),
-        }
-      )
-
-      transaction.set(
-        statusReference,
-        {
-          available: true,
-          borrowedBy: null,
-          activeLoanId: null,
-        }
-      )
-    }
-  )
-}
-
+// Crear una sola reserva activa por usuario y libro.
 export async function reserveBook(
   userId: string,
   book: BookDetails
-) {
-  const availability =
-    await getBookAvailability(
-      book.id
-    )
+): Promise<boolean> {
+  const statusRef = doc(db, 'bookStatus', book.id)
 
-  if (availability.available) {
-    throw new Error(
-      'This book is currently available and does not need a reservation.'
-    )
-  }
+  const reservationRef = doc(
+    db,
+    'reservations',
+    reservationId(userId, book.id)
+  )
 
-  if (
-    availability.borrowedBy === userId
-  ) {
-    throw new Error(
-      'You already have this book on loan.'
-    )
-  }
+  return runTransaction(db, async (transaction) => {
+    const statusSnapshot =
+      await transaction.get(statusRef)
 
-  const reservationId =
-    `${userId}_${book.id}`
+    const reservationSnapshot =
+      await transaction.get(reservationRef)
 
-  const reservationReference =
-    doc(
-      db,
-      'reservations',
-      reservationId
-    )
+    if (
+      reservationSnapshot.exists() &&
+      reservationSnapshot.data().status === 'active'
+    ) {
+      return false
+    }
 
-  const existingReservation =
-    await getDoc(
-      reservationReference
-    )
+    const bookStatus = statusSnapshot.data()
 
-  if (
-    existingReservation.exists() &&
-    existingReservation.data().status ===
-      'active'
-  ) {
-    throw new Error(
-      'You already reserved this book.'
-    )
-  }
+    if (
+      !statusSnapshot.exists() ||
+      bookStatus?.available !== false
+    ) {
+      throw new Error(
+        'This book is available. You can borrow it instead.'
+      )
+    }
 
-  await setDoc(
-    reservationReference,
-    {
+    if (bookStatus.borrowedBy === userId) {
+      throw new Error(
+        'You already have this book on loan.'
+      )
+    }
+
+    transaction.set(reservationRef, {
       userId,
       bookId: book.id,
-
       title: book.title,
       authorName: book.authorName,
       coverId: book.coverId ?? null,
-
-      createdAt: Timestamp.now(),
-
       status: 'active',
-    }
+      createdAt: Timestamp.now(),
+    })
+
+    return true
+  })
+}
+
+// Prestar el libro y comenzar su lectura en To Read.
+export async function borrowBook(
+  userId: string,
+  book: BookDetails
+): Promise<void> {
+  const statusRef = doc(db, 'bookStatus', book.id)
+  const loanRef = doc(collection(db, 'loans'))
+
+  const reservationRef = doc(
+    db,
+    'reservations',
+    reservationId(userId, book.id)
   )
+
+  const readingRef = doc(
+    db,
+    'readingStatus',
+    reservationId(userId, book.id)
+  )
+
+  await runTransaction(db, async (transaction) => {
+    const statusSnapshot =
+      await transaction.get(statusRef)
+
+    const reservationSnapshot =
+      await transaction.get(reservationRef)
+
+    if (
+      statusSnapshot.exists() &&
+      statusSnapshot.data().available === false
+    ) {
+      throw new Error(
+        'This book has already been borrowed.'
+      )
+    }
+
+    const borrowedDate = new Date()
+    const dueDate = new Date(borrowedDate)
+
+    dueDate.setDate(dueDate.getDate() + 21)
+
+    transaction.set(loanRef, {
+      userId,
+      bookId: book.id,
+      title: book.title,
+      authorName: book.authorName,
+      coverId: book.coverId ?? null,
+      borrowedAt: Timestamp.fromDate(borrowedDate),
+      dueDate: Timestamp.fromDate(dueDate),
+      returnedAt: null,
+      status: 'active',
+    })
+
+    transaction.set(statusRef, {
+      available: false,
+      borrowedBy: userId,
+      activeLoanId: loanRef.id,
+    })
+
+    // Cada nuevo préstamo comienza en To Read.
+    transaction.set(readingRef, {
+      userId,
+      bookId: book.id,
+      loanId: loanRef.id,
+      title: book.title,
+      authorName: book.authorName,
+      coverId: book.coverId ?? null,
+      status: 'to_read',
+      updatedAt: Timestamp.now(),
+    })
+
+    // Si había reservado, su reserva queda completada.
+    if (
+      reservationSnapshot.exists() &&
+      reservationSnapshot.data().status === 'active'
+    ) {
+      transaction.update(reservationRef, {
+        status: 'completed',
+      })
+    }
+  })
+}
+
+// Devolver solo si el estado es Completed.
+export async function returnBook(
+  loan: Loan
+): Promise<void> {
+  const loanRef = doc(db, 'loans', loan.id)
+  const statusRef = doc(db, 'bookStatus', loan.bookId)
+
+  const readingRef = doc(
+    db,
+    'readingStatus',
+    reservationId(loan.userId, loan.bookId)
+  )
+
+  // Buscar usuarios que reservaron este libro.
+  const reservationsSnapshot = await getDocs(
+    query(
+      collection(db, 'reservations'),
+      where('bookId', '==', loan.bookId)
+    )
+  )
+
+  await runTransaction(db, async (transaction) => {
+    const loanSnapshot = await transaction.get(loanRef)
+    const statusSnapshot = await transaction.get(statusRef)
+    const readingSnapshot =
+      await transaction.get(readingRef)
+
+    // Consultar las reservas antes de escribir.
+    const activeReservations: Array<{
+      id: string
+      userId: string
+    }> = []
+
+    for (const reservation of reservationsSnapshot.docs) {
+      const snapshot = await transaction.get(
+        reservation.ref
+      )
+
+      if (
+        snapshot.exists() &&
+        snapshot.data().status === 'active'
+      ) {
+        activeReservations.push({
+          id: reservation.id,
+          userId: snapshot.data().userId as string,
+        })
+      }
+    }
+
+    if (
+      !loanSnapshot.exists() ||
+      loanSnapshot.data().status !== 'active'
+    ) {
+      throw new Error(
+        'This loan is no longer active.'
+      )
+    }
+
+    const status = statusSnapshot.data()
+
+    if (
+      !statusSnapshot.exists() ||
+      status?.activeLoanId !== loan.id ||
+      status?.borrowedBy !== loan.userId
+    ) {
+      throw new Error(
+        'This loan does not match the active book loan.'
+      )
+    }
+
+    const reading = readingSnapshot.data()
+
+    if (
+      !readingSnapshot.exists() ||
+      reading?.loanId !== loan.id ||
+      reading?.status !== 'completed'
+    ) {
+      throw new Error(
+        'You must mark this book as completed before returning it.'
+      )
+    }
+
+    // Registrar devolución.
+    transaction.update(loanRef, {
+      status: 'returned',
+      returnedAt: Timestamp.now(),
+    })
+
+    // Libro disponible nuevamente.
+    transaction.set(statusRef, {
+      available: true,
+      borrowedBy: null,
+      activeLoanId: null,
+    })
+
+    // Notificación interna para cada reservante.
+    for (const reservation of activeReservations) {
+      const notificationRef = doc(
+        db,
+        'notifications',
+        `${loan.id}_${reservation.id}`
+      )
+
+      transaction.set(notificationRef, {
+        userId: reservation.userId,
+        bookId: loan.bookId,
+        title: loan.title,
+        message:
+          'A book you reserved is now available.',
+        type: 'book_available',
+        read: false,
+        createdAt: Timestamp.now(),
+      })
+    }
+  })
 }
 
 export async function getUserLoans(
   userId: string
 ): Promise<Loan[]> {
-  const loansQuery = query(
-    collection(db, 'loans'),
-    where(
-      'userId',
-      '==',
-      userId
+  const results = await getDocs(
+    query(
+      collection(db, 'loans'),
+      where('userId', '==', userId)
     )
   )
 
-  const snapshot =
-    await getDocs(
-      loansQuery
-    )
-
-  return snapshot.docs.map(
-    (document) => ({
-      id: document.id,
-      ...document.data(),
-    })
-  ) as Loan[]
+  return results.docs.map((document) => ({
+    ...document.data(),
+    id: document.id,
+  })) as Loan[]
 }
 
 export async function getUserReservations(
   userId: string
 ): Promise<Reservation[]> {
-  const reservationsQuery = query(
-    collection(
-      db,
-      'reservations'
-    ),
-    where(
-      'userId',
-      '==',
-      userId
+  const results = await getDocs(
+    query(
+      collection(db, 'reservations'),
+      where('userId', '==', userId)
     )
   )
 
-  const snapshot =
-    await getDocs(
-      reservationsQuery
-    )
-
-  return snapshot.docs.map(
-    (document) => ({
-      id: document.id,
-      ...document.data(),
-    })
-  ) as Reservation[]
+  return results.docs.map((document) => ({
+    ...document.data(),
+    id: document.id,
+  })) as Reservation[]
 }

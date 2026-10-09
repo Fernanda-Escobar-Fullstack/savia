@@ -15,6 +15,7 @@ import {
 import Logo from '../../components/Logo/Logo'
 import Button from '../../components/Button/Button'
 import TextField from '../../components/TextField/TextField'
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen'
 
 import styles from './LoginPage.module.css'
 
@@ -38,6 +39,8 @@ function LoginPage() {
   ) => {
     event.preventDefault()
 
+    if (loading) return
+
     try {
       dispatch(setAuthLoading(true))
       dispatch(setAuthError(null))
@@ -57,6 +60,8 @@ function LoginPage() {
           : 'Login failed.'
 
       dispatch(setAuthError(message))
+    } finally {
+      dispatch(setAuthLoading(false))
     }
   }
 
@@ -70,7 +75,7 @@ function LoginPage() {
         <div className={styles.heading}>
           <h1>Welcome back</h1>
           <p>
-            Sign in to continue to your university library
+            Login to continue to your university library
           </p>
         </div>
 
@@ -112,8 +117,8 @@ function LoginPage() {
             disabled={loading}
           >
             {loading
-              ? 'Signing in...'
-              : 'Sign in'}
+              ? 'Logging in...'
+              : 'Login'}
           </Button>
         </form>
 
@@ -124,6 +129,14 @@ function LoginPage() {
           </Link>
         </p>
       </section>
+
+      {loading && (
+        <LoadingScreen
+          fullScreen
+          message="Welcome back!"
+          description="Signing you in to SAVIA..."
+        />
+      )}
     </main>
   )
 }

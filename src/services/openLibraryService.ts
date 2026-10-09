@@ -53,12 +53,14 @@ interface OpenLibraryAuthorResponse {
 
 export async function searchBooks(
   query: string,
-  page: number = 1
+  page: number = 1,
+  signal?: AbortSignal
 ): Promise<OpenLibraryResponse> {
   const response =
     await openLibraryApi.get<OpenLibraryApiResponse>(
       '/search.json',
       {
+        signal,
         params: {
           q: query,
           page,

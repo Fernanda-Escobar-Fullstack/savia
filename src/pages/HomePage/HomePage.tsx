@@ -1,5 +1,6 @@
 import Header from '../../components/Header/Header'
 import BookCard from '../../components/BookCard/BookCard'
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen'
 
 import {
   setCategory,
@@ -157,11 +158,10 @@ function HomePage() {
           </div>
 
           {loading && (
-            <div className={styles.status}>
-              <div className={styles.loader} />
-
-              <p>Loading books...</p>
-            </div>
+            <LoadingScreen
+              message="Loading books"
+              description="Finding your next read..."
+            />
           )}
 
           {error && (

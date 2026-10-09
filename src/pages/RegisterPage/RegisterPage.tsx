@@ -17,6 +17,7 @@ import {
 import Logo from '../../components/Logo/Logo'
 import Button from '../../components/Button/Button'
 import TextField from '../../components/TextField/TextField'
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen'
 
 import styles from './RegisterPage.module.css'
 
@@ -75,6 +76,8 @@ function RegisterPage() {
           : 'Registration failed.'
 
       dispatch(setAuthError(message))
+    } finally {
+      dispatch(setAuthLoading(false))
     }
   }
 
@@ -190,10 +193,18 @@ function RegisterPage() {
         <p className={styles.footerText}>
           Already have an account?{' '}
           <Link to="/login">
-            Sign in
+            Login
           </Link>
         </p>
       </section>
+
+      {loading && (
+        <LoadingScreen
+          fullScreen
+          message="Creating your account"
+          description="Preparing your SAVIA library..."
+        />
+      )}
     </main>
   )
 }

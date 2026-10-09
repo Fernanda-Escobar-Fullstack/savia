@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 
 import type { Book } from '../../types/Book'
@@ -82,4 +83,4 @@ function BookCard({
   )
 }
 
-export default BookCard
+export default memo(BookCard)

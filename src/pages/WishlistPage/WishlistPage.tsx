@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useState,
 } from 'react'
@@ -6,6 +7,8 @@ import {
 import { Link } from 'react-router-dom'
 
 import Header from '../../components/Header/Header'
+import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal'
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen'
 
 import {
   getUserWishlist,
@@ -32,8 +35,8 @@ interface WishlistBook {
 }
 
 function WishlistPage() {
-  const user = useAppSelector(
-    (state) => state.auth.user
+  const userId = useAppSelector(
+    (state) => state.auth.user?.uid
   )
 
   const [
@@ -46,9 +49,14 @@ function WishlistPage() {
     setLoading,
   ] = useState(true)
 
+  const [pendingRemoval, setPendingRemoval] =
+    useState<WishlistItem | null>(null)
+
+  const [removing, setRemoving] = useState(false)
+
   const loadWishlist =
-    async () => {
-      if (!user) {
+    useCallback(async () => {
+      if (!userId) {
         return
       }
 
@@ -57,7 +65,7 @@ function WishlistPage() {
 
         const wishlist =
           await getUserWishlist(
-            user.uid
+            userId
           )
 
         const booksWithAvailability =
@@ -84,32 +92,40 @@ function WishlistPage() {
       } finally {
         setLoading(false)
       }
-    }
+    }, [userId])
 
   useEffect(() => {
-    loadWishlist()
-  }, [user])
+    void loadWishlist()
+  }, [loadWishlist])
 
   const handleRemove =
     async (
       bookId: string
     ) => {
-      if (!user) {
+      if (!userId) {
         return
       }
 
-      await removeFromWishlist(
-        user.uid,
-        bookId
-      )
+      try {
+        setRemoving(true)
 
-      setBooks(
-        (currentBooks) =>
-          currentBooks.filter(
-            ({ item }) =>
-              item.bookId !== bookId
-          )
-      )
+        await removeFromWishlist(
+          userId,
+          bookId
+        )
+
+        setBooks(
+          (currentBooks) =>
+            currentBooks.filter(
+              ({ item }) =>
+                item.bookId !== bookId
+            )
+        )
+
+        setPendingRemoval(null)
+      } finally {
+        setRemoving(false)
+      }
     }
 
   return (
@@ -130,13 +146,10 @@ function WishlistPage() {
         </header>
 
         {loading && (
-          <p
-            className={
-              styles.message
-            }
-          >
-            Loading wishlist...
-          </p>
+          <LoadingScreen
+            message="Loading your wishlist"
+            description="Getting your saved books ready..."
+          />
         )}
 
         {!loading &&
@@ -215,9 +228,7 @@ function WishlistPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          handleRemove(
-                            item.bookId
-                          )
+                          setPendingRemoval(item)
                         }
                       >
                         Remove
@@ -229,6 +240,19 @@ function WishlistPage() {
             </section>
           )}
       </main>
+
+      {pendingRemoval && (
+        <ConfirmationModal
+          title="Remove from wishlist?"
+          description={`Are you sure you want to remove ${pendingRemoval.title} from your wishlist?`}
+          confirmLabel="Remove"
+          loading={removing}
+          onConfirm={() => {
+            void handleRemove(pendingRemoval.bookId)
+          }}
+          onCancel={() => setPendingRemoval(null)}
+        />
+      )}
     </>
   )
 }

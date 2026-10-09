@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { useAppSelector } from '../hooks/reduxHooks'
+import LoadingScreen from './LoadingScreen/LoadingScreen'
 
 interface ProtectedRouteProps {
   children: ReactNode
@@ -19,7 +20,13 @@ function ProtectedRoute({
   )
 
   if (loading) {
-    return <p>Loading...</p>
+    return (
+      <LoadingScreen
+        fullScreen
+        message="Loading SAVIA"
+        description="Preparing your library..."
+      />
+    )
   }
 
   if (!user) {

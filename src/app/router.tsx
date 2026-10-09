@@ -1,83 +1,89 @@
+import { Suspense, type ReactNode } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 
 import ProtectedRoute from '../components/ProtectedRoute'
+import LoadingScreen from '../components/LoadingScreen/LoadingScreen'
 
-import HomePage from '../pages/HomePage/HomePage'
-import LoginPage from '../pages/LoginPage/LoginPage'
-import RegisterPage from '../pages/RegisterPage/RegisterPage'
-import BookDetailsPage from '../pages/BookDetailsPage/BookDetailsPage'
-import MyLibraryPage from '../pages/MyLibraryPage/MyLibraryPage'
-import WishlistPage from '../pages/WishlistPage/WishlistPage'
-import ProfilePage from '../pages/ProfilePage/ProfilePage'
-import SettingsPage from '../pages/SettingsPage/SettingsPage'
-import NotFoundPage from '../pages/NotFoundPage/NotFoundPage'
+import {
+  BookDetailsPage,
+  HomePage,
+  LoginPage,
+  MyLibraryPage,
+  NotFoundPage,
+  NotificationsPage,
+  ProfilePage,
+  RegisterPage,
+  SettingsPage,
+  WishlistPage,
+} from './LazyPages'
+
+const routeFallback = (
+  <LoadingScreen
+    fullScreen
+    message="Loading SAVIA"
+    description="Preparing your library..."
+  />
+)
+
+function lazyRoute(element: ReactNode) {
+  return <Suspense fallback={routeFallback}>{element}</Suspense>
+}
+
+function protectedLazyRoute(element: ReactNode) {
+  return (
+    <ProtectedRoute>
+      {lazyRoute(element)}
+    </ProtectedRoute>
+  )
+}
 
 export const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />,
+    element: lazyRoute(<LoginPage />),
   },
   {
     path: '/register',
-    element: <RegisterPage />,
+    element: lazyRoute(<RegisterPage />),
   },
 
   {
     path: '/',
-    element: (
-      <ProtectedRoute>
-        <HomePage />
-      </ProtectedRoute>
-    ),
+    element: protectedLazyRoute(<HomePage />),
   },
 
   {
     path: '/books/:bookId',
-    element: (
-      <ProtectedRoute>
-        <BookDetailsPage />
-      </ProtectedRoute>
-    ),
+    element: protectedLazyRoute(<BookDetailsPage />),
   },
 
   {
     path: '/my-library',
-    element: (
-      <ProtectedRoute>
-        <MyLibraryPage />
-      </ProtectedRoute>
-    ),
+    element: protectedLazyRoute(<MyLibraryPage />),
   },
 
   {
     path: '/wishlist',
-    element: (
-      <ProtectedRoute>
-        <WishlistPage />
-      </ProtectedRoute>
-    ),
+    element: protectedLazyRoute(<WishlistPage />),
   },
 
   {
     path: '/profile',
-    element: (
-      <ProtectedRoute>
-        <ProfilePage />
-      </ProtectedRoute>
-    ),
+    element: protectedLazyRoute(<ProfilePage />),
   },
 
   {
     path: '/settings',
-    element: (
-      <ProtectedRoute>
-        <SettingsPage />
-      </ProtectedRoute>
-    ),
+    element: protectedLazyRoute(<SettingsPage />),
+  },
+
+  {
+    path: '/notifications',
+    element: protectedLazyRoute(<NotificationsPage />),
   },
 
   {
     path: '*',
-    element: <NotFoundPage />,
+    element: lazyRoute(<NotFoundPage />),
   },
 ])
