@@ -1,7 +1,3 @@
-// @vitest-environment jsdom
-
-import '@testing-library/jest-dom/vitest'
-
 import { configureStore } from '@reduxjs/toolkit'
 import {
   cleanup,
@@ -11,17 +7,16 @@ import {
 } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-
 import authReducer from '../src/features/auth/authSlice'
 import booksReducer from '../src/features/books/booksSlice'
 import HomePage from '../src/pages/HomePage/HomePage'
 
-vi.mock('../src/components/Header/Header', () => ({
+jest.mock('../src/components/Header/Header', () => ({
+  __esModule: true,
   default: () => <header>SAVIA Header</header>,
 }))
 
-vi.mock('../src/hooks/useBooks', () => ({
+jest.mock('../src/hooks/useBooks', () => ({
   useBooks: () => ({
     books: [
       {

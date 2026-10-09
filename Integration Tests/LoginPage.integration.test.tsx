@@ -1,7 +1,3 @@
-// @vitest-environment jsdom
-
-import '@testing-library/jest-dom/vitest'
-
 import { configureStore } from '@reduxjs/toolkit'
 import {
   cleanup,
@@ -16,25 +12,17 @@ import {
   Route,
   Routes,
 } from 'react-router-dom'
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
-
 import authReducer from '../src/features/auth/authSlice'
 import booksReducer from '../src/features/books/booksSlice'
 import LoginPage from '../src/pages/LoginPage/LoginPage'
 import { loginUser } from '../src/services/authService'
 
-vi.mock('../src/services/authService', () => ({
-  loginUser: vi.fn(),
+jest.mock('../src/services/authService', () => ({
+  loginUser: jest.fn(),
 }))
 
-vi.mock('../src/components/Logo/Logo', () => ({
+jest.mock('../src/components/Logo/Logo', () => ({
+  __esModule: true,
   default: () => <div>SAVIA Logo</div>,
 }))
 
@@ -81,7 +69,7 @@ function renderLoginPage() {
 
 describe('LoginPage integration', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   afterEach(() => {
@@ -89,7 +77,7 @@ describe('LoginPage integration', () => {
   })
 
   it('inicia sesion, guarda al usuario y navega al inicio', async () => {
-    vi.mocked(loginUser).mockResolvedValue(authenticatedUser)
+    jest.mocked(loginUser).mockResolvedValue(authenticatedUser)
     const store = renderLoginPage()
     const user = userEvent.setup()
 
@@ -121,7 +109,7 @@ describe('LoginPage integration', () => {
   })
 
   it('muestra el error cuando el servicio rechaza el acceso', async () => {
-    vi.mocked(loginUser).mockRejectedValue(
+    jest.mocked(loginUser).mockRejectedValue(
       new Error('Invalid credentials.')
     )
     renderLoginPage()

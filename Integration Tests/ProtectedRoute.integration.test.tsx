@@ -1,7 +1,3 @@
-// @vitest-environment jsdom
-
-import '@testing-library/jest-dom/vitest'
-
 import { configureStore } from '@reduxjs/toolkit'
 import {
   cleanup,
@@ -14,8 +10,6 @@ import {
   Route,
   Routes,
 } from 'react-router-dom'
-import { afterEach, describe, expect, it } from 'vitest'
-
 import ProtectedRoute from '../src/components/ProtectedRoute'
 import authReducer from '../src/features/auth/authSlice'
 import booksReducer from '../src/features/books/booksSlice'

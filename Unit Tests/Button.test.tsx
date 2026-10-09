@@ -1,14 +1,9 @@
-// @vitest-environment jsdom
-
-import '@testing-library/jest-dom/vitest'
-
 import {
   cleanup,
   fireEvent,
   render,
   screen,
 } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '../src/components/Button/Button'
 
@@ -26,7 +21,7 @@ describe('Button', () => {
   })
 
   it('ejecuta onClick cuando el usuario hace clic', () => {
-    const handleClick = vi.fn()
+    const handleClick = jest.fn()
 
     render(
       <Button onClick={handleClick}>
@@ -42,7 +37,7 @@ describe('Button', () => {
   })
 
   it('no ejecuta onClick cuando esta deshabilitado', () => {
-    const handleClick = vi.fn()
+    const handleClick = jest.fn()
 
     render(
       <Button disabled onClick={handleClick}>
