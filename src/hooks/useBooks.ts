@@ -35,6 +35,19 @@ export function useBooks() {
   )
 
   useEffect(() => {
+    const trimmedSearchTerm =
+      debouncedSearchTerm.trim()
+
+    const searchIsTooShort =
+      trimmedSearchTerm.length > 0 &&
+      trimmedSearchTerm.length < 3
+
+    if (searchIsTooShort) {
+      dispatch(setBooksError(null))
+      dispatch(setBooksLoading(false))
+      return
+    }
+
     const controller = new AbortController()
     let active = true
 
@@ -45,8 +58,8 @@ export function useBooks() {
 
         const query =
           category === 'all'
-            ? debouncedSearchTerm
-            : `${debouncedSearchTerm} subject:${category}`
+            ? trimmedSearchTerm
+            : `${trimmedSearchTerm} subject:${category}`
 
         const result = await searchBooks(
           query || 'programming',
@@ -89,30 +102,34 @@ export function useBooks() {
     page,
   ])
 
-  const sortedBooks = useMemo(() => [...books].sort((a, b) => {
-    if (sortBy === 'author') {
-      const authorA = a.authorName?.[0] ?? ''
-      const authorB = b.authorName?.[0] ?? ''
+  const sortedBooks = useMemo(
+    () =>
+      [...books].sort((a, b) => {
+        if (sortBy === 'author') {
+          const authorA = a.authorName?.[0] ?? ''
+          const authorB = b.authorName?.[0] ?? ''
 
-      return authorA.localeCompare(authorB)
-    }
+          return authorA.localeCompare(authorB)
+        }
 
-    if (sortBy === 'date') {
-      return (
-        (b.firstPublishYear ?? 0) -
-        (a.firstPublishYear ?? 0)
-      )
-    }
+        if (sortBy === 'date') {
+          return (
+            (b.firstPublishYear ?? 0) -
+            (a.firstPublishYear ?? 0)
+          )
+        }
 
-    if (sortBy === 'popularity') {
-      return (
-        (b.editionCount ?? 0) -
-        (a.editionCount ?? 0)
-      )
-    }
+        if (sortBy === 'popularity') {
+          return (
+            (b.editionCount ?? 0) -
+            (a.editionCount ?? 0)
+          )
+        }
 
-    return 0
-  }), [books, sortBy])
+        return 0
+      }),
+    [books, sortBy]
+  )
 
   return {
     books: sortedBooks,
