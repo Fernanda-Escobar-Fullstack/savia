@@ -9,10 +9,9 @@ In this application, users can create an account, log in, search for books, view
 I deployed my project at:
 
 ```text
-<NETLIFY_URL>
-```
+https://savialy.netlify.app
 
-> I will replace this text with my Netlify URL after deploying the project.
+```
 
 ## Main Features
 
