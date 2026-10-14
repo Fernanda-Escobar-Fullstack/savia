@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 
 import { subscribeToAuthState } from '../services/authService'
 import {
+  setAuthError,
   setAuthLoading,
   setUser,
 } from '../features/auth/authSlice'
@@ -22,6 +23,9 @@ function AuthListener({
     const unsubscribe = subscribeToAuthState(
       (user) => {
         dispatch(setUser(user))
+      },
+      (message) => {
+        dispatch(setAuthError(message))
       }
     )
 
@@ -34,3 +38,4 @@ function AuthListener({
 }
 
 export default AuthListener
+

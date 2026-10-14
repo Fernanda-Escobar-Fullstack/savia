@@ -53,96 +53,82 @@ function WishlistPage() {
     useState<WishlistItem | null>(null)
 
   const [removing, setRemoving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [loadFailed, setLoadFailed] = useState(false)
 
-  const loadWishlist =
-    useCallback(async () => {
-      if (!userId) {
-        return
-      }
+  const loadWishlist = useCallback(async () => {
+    if (!userId) {
+      return
+    }
 
-      try {
-        setLoading(true)
+    try {
+      setLoading(true)
+      setError(null)
+      setLoadFailed(false)
 
-        const wishlist =
-          await getUserWishlist(
-            userId
+      const wishlist = await getUserWishlist(userId)
+
+      const booksWithAvailability = await Promise.all(
+        wishlist.map(async (item) => {
+          const availability = await getBookAvailability(
+            item.bookId
           )
 
-        const booksWithAvailability =
-          await Promise.all(
-            wishlist.map(
-              async (item) => {
-                const availability =
-                  await getBookAvailability(
-                    item.bookId
-                  )
+          return {
+            item,
+            available: availability.available,
+          }
+        })
+      )
 
-                return {
-                  item,
-                  available:
-                    availability.available,
-                }
-              }
-            )
-          )
-
-        setBooks(
-          booksWithAvailability
-        )
-      } finally {
-        setLoading(false)
-      }
-    }, [userId])
+      setBooks(booksWithAvailability)
+    } catch {
+      setError('Could not load your wishlist. Please try again.')
+      setLoadFailed(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [userId])
 
   useEffect(() => {
-    void loadWishlist()
+    void Promise.resolve().then(loadWishlist)
   }, [loadWishlist])
 
-  const handleRemove =
-    async (
-      bookId: string
-    ) => {
-      if (!userId) {
-        return
-      }
-
-      try {
-        setRemoving(true)
-
-        await removeFromWishlist(
-          userId,
-          bookId
-        )
-
-        setBooks(
-          (currentBooks) =>
-            currentBooks.filter(
-              ({ item }) =>
-                item.bookId !== bookId
-            )
-        )
-
-        setPendingRemoval(null)
-      } finally {
-        setRemoving(false)
-      }
+  const handleRemove = async (bookId: string) => {
+    if (!userId) {
+      return
     }
+
+    try {
+      setRemoving(true)
+      setError(null)
+
+      await removeFromWishlist(userId, bookId)
+
+      setBooks((currentBooks) =>
+        currentBooks.filter(
+          ({ item }) => item.bookId !== bookId
+        )
+      )
+
+      setPendingRemoval(null)
+    } catch {
+      setPendingRemoval(null)
+      setError('Could not remove this book from your wishlist.')
+    } finally {
+      setRemoving(false)
+    }
+  }
 
   return (
     <>
       <Header />
 
       <main className={styles.page}>
-        <header
-          className={styles.heading}
-        >
-          <h1>
-            Wishlist
-          </h1>
+        <header className={styles.heading}>
+          <h1>Wishlist</h1>
 
-          <p>
-            Books you saved for later.
-          </p>
+          <p>Books you saved for later.</p>
         </header>
 
         {loading && (
@@ -152,91 +138,76 @@ function WishlistPage() {
           />
         )}
 
+        {!loading && error && (
+          <div className={styles.error} role="alert">
+            <p>{error}</p>
+
+            {loadFailed && (
+              <button
+                type="button"
+                onClick={() => {
+                  void loadWishlist()
+                }}
+              >
+                Try again
+              </button>
+            )}
+          </div>
+        )}
+
         {!loading &&
+          !loadFailed &&
           books.length === 0 && (
-            <div
-              className={
-                styles.empty
-              }
-            >
-              <h2>
-                Your wishlist is empty
-              </h2>
+            <div className={styles.empty}>
+              <h2>Your wishlist is empty</h2>
 
-              <p>
-                Save books you want
-                to read later.
-              </p>
+              <p>Save books you want to read later.</p>
 
-              <Link to="/">
-                Browse books
-              </Link>
+              <Link to="/">Browse books</Link>
             </div>
           )}
 
         {!loading &&
+          !loadFailed &&
           books.length > 0 && (
-            <section
-              className={styles.list}
-            >
-              {books.map(
-                ({
-                  item,
-                  available,
-                }) => (
-                  <article
-                    key={item.id}
-                    className={
-                      styles.card
-                    }
+            <section className={styles.list}>
+              {books.map(({ item, available }) => (
+                <article
+                  key={item.id}
+                  className={styles.card}
+                >
+                  <Link
+                    to={`/books/${item.bookId}`}
+                    className={styles.bookInfo}
                   >
-                    <Link
-                      to={`/books/${item.bookId}`}
+                    <h2>{item.title}</h2>
+
+                    <p>
+                      {item.authorName.join(', ') ||
+                        'Unknown author'}
+                    </p>
+                  </Link>
+
+                  <div className={styles.actions}>
+                    <span
                       className={
-                        styles.bookInfo
+                        available
+                          ? styles.available
+                          : styles.unavailable
                       }
                     >
-                      <h2>
-                        {item.title}
-                      </h2>
+                      {available ? 'Available' : 'Unavailable'}
+                    </span>
 
-                      <p>
-                        {item.authorName.join(
-                          ', '
-                        ) ||
-                          'Unknown author'}
-                      </p>
-                    </Link>
-
-                    <div
-                      className={
-                        styles.actions
-                      }
+                    <button
+                      type="button"
+                      onClick={() => setPendingRemoval(item)}
                     >
-                      <span
-                        className={
-                          available
-                            ? styles.available
-                            : styles.unavailable
-                        }
-                      >
-                        {available
-                          ? 'Available'
-                          : 'Unavailable'}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setPendingRemoval(item)
-                        }
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </article>
-                )
-              )}
+                      Remove
+                    </button>
+                  </div>
+                </article>
+              ))}
             </section>
           )}
       </main>
@@ -258,3 +229,4 @@ function WishlistPage() {
 }
 
 export default WishlistPage
+

@@ -1,77 +1,85 @@
 # SAVIA — University Library
 
-SAVIA is a university library application that I created as my Capstone project.
-
-In this application, users can create an account, log in, search for books, view book details, save books in a wishlist, make reservations, borrow books, and check their notifications.
+SAVIA is a university library web application that I created as my Capstone project. It allows students to search for books, manage a personal wishlist, borrow or reserve books, track their reading progress, and receive library notifications.
 
 ## Live Demo
 
-I deployed my project at:
+[Open SAVIA on Netlify](https://savialy.netlify.app/)
 
-```text
-https://savialy.netlify.app
+## About the Project
 
-```
+The goal of SAVIA is to make common university library tasks easier from a single application. A user can create an account, explore the catalog, check whether a book is available, manage loans and reservations, and keep track of saved books.
+
+The application uses Open Library for book information and Firebase for authentication and application data.
 
 ## Main Features
 
-In SAVIA, I implemented:
-
 - User registration and login.
-- Protected routes.
-- Book search.
-- Category and sorting filters.
-- Book details.
+- Protected application routes.
+- Book search through the Open Library API.
+- Category filters and result sorting.
+- Detailed book information.
 - Wishlist management.
-- Book reservations and loans.
-- Reservation cancellation and book returns.
-- Personal library.
-- Notifications.
+- Book loans and returns.
+- Reservations and reservation cancellation.
+- Reading progress tracking.
+- Personal library with active loans, reservations, and loan history.
+- Notifications when a reserved book becomes available.
 - User profile.
 - Light and dark themes.
 - Responsive design.
-- Lazy loading.
+- Lazy-loaded pages.
 - Unit and integration tests.
 
-## Authentication Flow
+## Application Flow
 
-For authentication, I used Firebase Authentication.
+After creating an account or logging in, the user enters the book catalog.
+
+The user can:
+
+1. Search for a book by title, author, or keyword.
+2. Filter results by category.
+3. Sort results by popularity, author, or publication date.
+4. Open a book to view its details and availability.
+5. Add the book to the wishlist.
+6. Borrow the book when it is available.
+7. Reserve the book when it is unavailable.
+8. Track reading progress as To Read, Reading, or Completed.
+9. Return a borrowed book after marking it as Completed.
+10. Review loans, reservations, and history in My Library.
+11. Read notifications about reserved books.
+12. Change the application theme or log out.
+
+SAVIA avoids sending search requests for terms containing only one or two characters. This reduces unnecessary API requests while the user is typing.
+
+## Authentication and Data
 
 ### Registration
 
 When a user creates an account:
 
-1. I send the email and password to Firebase Authentication.
-2. Firebase creates the account.
-3. I save the rest of the user information in Firestore.
-4. The user can access the protected pages.
+1. Firebase Authentication creates the account using the email and password.
+2. SAVIA stores the user's profile in Cloud Firestore.
+3. The authenticated user can access the protected pages.
 
-The additional information includes:
+The profile contains:
 
 - Full name.
 - Username.
-- University code.
 - Email.
+- University code.
 
-### Login
+If the profile cannot be saved after creating the authentication account, SAVIA removes the incomplete account so the user can try again safely.
 
-When a user logs in:
+### Login and Session Restoration
 
-1. I send the email and password to Firebase.
-2. Firebase verifies the credentials.
-3. I get the user's profile from Firestore.
-4. I save the user information in Redux.
-5. I redirect the user to the home page.
+When a user logs in, Firebase verifies the credentials and SAVIA loads the corresponding profile from Firestore. The profile is stored in Redux and the user is redirected to the catalog.
 
-Firebase manages the authentication token and keeps the session active automatically.
+Firebase keeps the authentication session active. When the application starts again, SAVIA verifies the session and restores the user profile. If the profile cannot be restored, the loading screen finishes and the application displays an error instead of remaining blocked.
 
 ### Protected Routes
 
-I protected the main pages of the application.
-
-If a user is not logged in, I redirect them to the login page.
-
-The protected pages include:
+The following pages require an authenticated user:
 
 - Home.
 - Book details.
@@ -81,51 +89,25 @@ The protected pages include:
 - Settings.
 - Notifications.
 
-### Logout
-
-When the user logs out, I close the Firebase session and redirect the user to the login page.
-
-## Application Flow
-
-After logging in, the user enters the book catalog.
-
-The user can:
-
-1. Search for a book.
-2. Filter books by category.
-3. Sort the results.
-4. Open a book to see its details.
-5. Add the book to the wishlist.
-6. Reserve or borrow an available book.
-7. Check loans and reservations in My Library.
-8. Read notifications about library activity.
-9. Change the application theme.
-10. Log out.
-
-For book information, I connected my application to the Open Library API.
-
-Open Library requires at least three characters for a search. I added a validation to prevent requests with only one or two characters.
+Users without an active session are redirected to the login page.
 
 ## Technologies
 
-I used the following technologies:
-
-- React
-- TypeScript
-- Vite
-- React Router
-- Redux Toolkit
-- Axios
-- Firebase Authentication
-- Cloud Firestore
-- Open Library API
-- Jest
-- React Testing Library
-- Netlify
+| Technology | Purpose |
+| --- | --- |
+| React | User interface |
+| TypeScript | Static typing |
+| Vite | Development server and production build |
+| React Router | Navigation and protected routes |
+| Redux Toolkit | Global authentication and catalog state |
+| Axios | Open Library API requests |
+| Firebase Authentication | Registration, login, and sessions |
+| Cloud Firestore | User profiles, loans, reservations, wishlist, and notifications |
+| Jest | Test runner |
+| React Testing Library | Component and integration testing |
+| Netlify | Production deployment |
 
 ## Project Structure
-
-I organized my project in the following way:
 
 ```text
 savia/
@@ -139,31 +121,40 @@ savia/
 │   ├── hooks/
 │   ├── pages/
 │   ├── services/
-│   ├── store/
 │   └── types/
 ├── Unit Tests/
 ├── Integration Tests/
 ├── .env.example
+├── index.html
 ├── netlify.toml
 ├── package.json
+├── tsconfig.json
 └── vite.config.ts
 ```
 
+## Requirements
+
+Before running the project, install:
+
+- Node.js 22.
+- npm.
+- A Firebase project with Authentication and Cloud Firestore enabled.
+
 ## Installation
 
-First, I clone the repository:
+Clone the repository:
 
 ```bash
 git clone https://gitlab.com/jala-university1/cohort-3/ES.CO.CSWB-366.GA.T2.26.M2/SC/maria-escobar/capstone/savia.git
 ```
 
-Then, I enter the project folder:
+Enter the project folder:
 
 ```bash
 cd savia
 ```
 
-I install the dependencies:
+Install the dependencies:
 
 ```bash
 npm install
@@ -171,7 +162,7 @@ npm install
 
 ## Environment Variables
 
-To connect the project to Firebase, I create a `.env` file in the root of the project.
+Create a `.env` file in the project root. The repository includes `.env.example` as a reference.
 
 ```env
 VITE_FIREBASE_API_KEY=
@@ -182,81 +173,73 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 ```
 
-I add the Firebase configuration values to this file.
-
-I do not upload the `.env` file to GitLab.
+Add the configuration values from the Firebase project. The `.env` file should not be committed to GitLab.
 
 ## Running the Project
 
-To start the application, I run:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Then, I open the local URL displayed in the terminal.
-
-It is normally:
+Open the local URL displayed in the terminal. By default, Vite normally uses:
 
 ```text
 http://localhost:5173
 ```
 
+## Available Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Starts the development server |
+| `npm run build` | Creates the production build |
+| `npm run preview` | Previews the production build locally |
+| `npm run lint` | Checks the project with ESLint |
+| `npm run test:unit` | Runs the unit tests |
+| `npm run test:integration` | Runs the integration tests |
+| `npm run test:run` | Runs the complete test suite |
+
 ## Tests
 
-For testing, I used Jest and React Testing Library.
+The project uses Jest and React Testing Library. External services are mocked, so the tests do not modify real Firebase data.
 
 ### Unit Tests
 
-To run only the unit tests:
+Run only the unit tests:
 
 ```bash
 npm run test:unit
 ```
 
-I created 17 unit tests for:
+The 17 unit tests cover:
 
-- Button.
-- BookCard.
-- Header.
+- Button rendering and variants.
+- Book cards and fallback information.
+- Header navigation.
 - Authentication state.
 - Book catalog state.
-- Search debounce.
-
-Expected result:
-
-```text
-Test Suites: 6 passed, 6 total
-Tests:       17 passed, 17 total
-```
+- Search debounce behavior.
 
 ### Integration Tests
 
-To run only the integration tests:
+Run only the integration tests:
 
 ```bash
 npm run test:integration
 ```
 
-I created 8 integration tests for:
+The 8 integration tests cover:
 
-- Login.
+- Login behavior.
 - Protected routes.
-- Home page.
-- Catalog.
-- Search and filters.
-- Redux state.
+- Home page rendering.
+- Catalog search, filters, and Redux state.
 
-Expected result:
+### Complete Test Suite
 
-```text
-Test Suites: 3 passed, 3 total
-Tests:       8 passed, 8 total
-```
-
-### All Tests
-
-To run all tests:
+Run all tests:
 
 ```bash
 npm run test:run
@@ -270,51 +253,58 @@ Tests:       25 passed, 25 total
 Snapshots:   0 total
 ```
 
-The tests do not modify real Firebase data because I simulate the external services.
-
 ## Production Build
 
-To prepare the application for production, I run:
+Create the production build:
 
 ```bash
 npm run build
 ```
 
-The production files are generated inside the `dist` folder.
+The optimized files are generated inside the `dist` folder. The build configuration separates the main dependencies into smaller chunks to avoid sending the entire application in one large JavaScript file.
 
-To preview the production version locally, I run:
+Preview the production build locally:
 
 ```bash
 npm run preview
 ```
 
-## Performance
+## Performance Decisions
 
-To improve the performance of my application, I used:
+To improve performance and user experience, I used:
 
 - `React.lazy` to load pages only when they are needed.
-- `Suspense` to show a loading screen.
-- `React.memo` to prevent unnecessary renders.
-- `useMemo` to avoid repeated calculations.
-- `useCallback` to reuse functions.
-- `useDebounce` to reduce unnecessary searches.
-- `AbortController` to cancel old requests.
+- `Suspense` to display a loading screen during page loading.
+- `React.memo` to reduce unnecessary component renders.
+- `useMemo` for calculated and sorted data.
+- `useCallback` for reusable callback references.
+- `useDebounce` to reduce unnecessary search requests.
+- `AbortController` to cancel outdated API requests.
+- Vite code splitting to separate large third-party dependencies.
 
 ## Deployment
 
-I prepared my application for deployment on Netlify.
-
-My Netlify configuration uses:
+The application is deployed on Netlify with the following configuration:
 
 ```text
 Build command: npm run build
 Publish directory: dist
+Node version: 22
 ```
 
-I also added a redirect rule so React Router works correctly when a page is reloaded.
+The project includes an SPA redirect rule so React Router routes continue working after a page reload. The Netlify domain must also be included in the authorized domains in Firebase Authentication.
 
-After deploying the project, I add the Netlify domain to the authorized domains in Firebase Authentication.
+## Possible Future Improvements
+
+Some improvements I would consider in a future version are:
+
+- End-to-end tests for complete user flows.
+- Profile editing.
+- A reservation queue with borrowing priority.
+- More detailed availability information.
+- Administrative tools for library staff.
 
 ## Author
 
 Fernanda Escobar
+

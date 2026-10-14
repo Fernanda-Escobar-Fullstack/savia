@@ -1,8 +1,10 @@
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  type UserCredential,
 } from 'firebase/auth'
 
 import {
@@ -23,6 +25,16 @@ interface RegisterData {
   password: string
 }
 
+async function removeIncompleteAccount(
+  credential: UserCredential
+) {
+  try {
+    await deleteUser(credential.user)
+  } catch {
+    await signOut(auth).catch(() => undefined)
+  }
+}
+
 export async function registerUser(
   data: RegisterData
 ): Promise<UserProfile> {
@@ -40,13 +52,22 @@ export async function registerUser(
     universityCode: data.universityCode,
   }
 
-  await setDoc(
-    doc(db, 'users', credential.user.uid),
-    {
-      ...profile,
-      createdAt: serverTimestamp(),
-    }
-  )
+  try {
+    await setDoc(
+      doc(db, 'users', credential.user.uid),
+      {
+        ...profile,
+        createdAt: serverTimestamp(),
+      }
+    )
+  } catch (error) {
+    await removeIncompleteAccount(credential)
+
+    throw new Error(
+      'Your profile could not be saved. Please try again.',
+      { cause: error }
+    )
+  }
 
   return profile
 }
@@ -66,6 +87,7 @@ export async function loginUser(
   )
 
   if (!userDocument.exists()) {
+    await signOut(auth)
     throw new Error('User profile not found.')
   }
 
@@ -77,23 +99,56 @@ export async function logoutUser() {
 }
 
 export function subscribeToAuthState(
-  callback: (user: UserProfile | null) => void
+  callback: (user: UserProfile | null) => void,
+  onError?: (message: string) => void
 ) {
-  return onAuthStateChanged(auth, async (firebaseUser) => {
-    if (!firebaseUser) {
+  let revision = 0
+
+  const unsubscribe = onAuthStateChanged(
+    auth,
+    async (firebaseUser) => {
+      const currentRevision = ++revision
+
+      if (!firebaseUser) {
+        callback(null)
+        return
+      }
+
+      try {
+        const userDocument = await getDoc(
+          doc(db, 'users', firebaseUser.uid)
+        )
+
+        if (currentRevision !== revision) {
+          return
+        }
+
+        if (!userDocument.exists()) {
+          callback(null)
+          onError?.('Your user profile could not be found.')
+          return
+        }
+
+        callback(userDocument.data() as UserProfile)
+      } catch {
+        if (currentRevision !== revision) {
+          return
+        }
+
+        callback(null)
+        onError?.('Could not restore your session.')
+      }
+    },
+    () => {
+      revision += 1
       callback(null)
-      return
+      onError?.('Could not verify your session.')
     }
+  )
 
-    const userDocument = await getDoc(
-      doc(db, 'users', firebaseUser.uid)
-    )
-
-    if (!userDocument.exists()) {
-      callback(null)
-      return
-    }
-
-    callback(userDocument.data() as UserProfile)
-  })
+  return () => {
+    revision += 1
+    unsubscribe()
+  }
 }
+
