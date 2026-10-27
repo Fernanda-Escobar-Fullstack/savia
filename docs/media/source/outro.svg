@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#0d2117"/><stop offset="1" stop-color="#397e57"/></linearGradient></defs><rect width="1920" height="1080" fill="url(#g)"/>
+  <text x="960" y="380" text-anchor="middle" fill="#fff" font-family="DejaVu Sans,Arial" font-size="160" font-weight="700" letter-spacing="16">SAVIA</text><text x="960" y="485" text-anchor="middle" fill="#d8eadf" font-family="DejaVu Sans,Arial" font-size="46">React · TypeScript · Firebase · Open Library</text><rect x="594" y="585" width="732" height="112" rx="56" fill="#eef8f1"/><text x="960" y="657" text-anchor="middle" fill="#2e6848" font-family="DejaVu Sans,Arial" font-size="38" font-weight="700">Explore the live demo</text><text x="960" y="790" text-anchor="middle" fill="#acd0b8" font-family="DejaVu Sans,Arial" font-size="32">savialy.netlify.app</text>
+</svg>

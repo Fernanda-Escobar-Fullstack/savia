@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#10261c"/><stop offset="1" stop-color="#438a61"/></linearGradient></defs>
+  <rect width="1920" height="1080" fill="url(#g)"/><circle cx="1610" cy="190" r="390" fill="none" stroke="#d9efe0" stroke-opacity=".11" stroke-width="2"/><circle cx="1610" cy="190" r="260" fill="none" stroke="#d9efe0" stroke-opacity=".11" stroke-width="2"/>
+  <text x="160" y="470" fill="#fff" font-family="DejaVu Sans,Arial" font-size="174" font-weight="700" letter-spacing="18">SAVIA</text>
+  <text x="170" y="570" fill="#d8eadf" font-family="DejaVu Sans,Arial" font-size="48">A university library experience</text>
+  <text x="170" y="642" fill="#a9cfb6" font-family="DejaVu Sans,Arial" font-size="31">Discovery, circulation and reading progress in one place.</text>
+</svg>
