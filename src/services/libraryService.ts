@@ -32,7 +32,6 @@ function reservationId(userId: string, bookId: string) {
   return `${userId}_${bookId}`
 }
 
-// Escuchar la disponibilidad del libro.
 export function subscribeToBookAvailability(
   bookId: string,
   callback: (availability: BookAvailability) => void
@@ -76,7 +75,6 @@ export async function getBookAvailability(
   }
 }
 
-// Saber si ESTE usuario ya reservó el libro.
 export function subscribeToUserReservation(
   userId: string,
   bookId: string,
@@ -96,7 +94,6 @@ export function subscribeToUserReservation(
   })
 }
 
-// Crear una sola reserva activa por usuario y libro.
 export async function reserveBook(
   userId: string,
   book: BookDetails
@@ -154,7 +151,6 @@ export async function reserveBook(
   })
 }
 
-// Prestar el libro y comenzar su lectura en To Read.
 export async function borrowBook(
   userId: string,
   book: BookDetails
@@ -213,7 +209,6 @@ export async function borrowBook(
       activeLoanId: loanRef.id,
     })
 
-    // Cada nuevo préstamo comienza en To Read.
     transaction.set(readingRef, {
       userId,
       bookId: book.id,
@@ -225,7 +220,6 @@ export async function borrowBook(
       updatedAt: Timestamp.now(),
     })
 
-    // Si había reservado, su reserva queda completada.
     if (
       reservationSnapshot.exists() &&
       reservationSnapshot.data().status === 'active'
@@ -237,7 +231,6 @@ export async function borrowBook(
   })
 }
 
-// Devolver solo si el estado es Completed.
 export async function returnBook(
   loan: Loan
 ): Promise<void> {
@@ -250,7 +243,6 @@ export async function returnBook(
     reservationId(loan.userId, loan.bookId)
   )
 
-  // Buscar usuarios que reservaron este libro.
   const reservationsSnapshot = await getDocs(
     query(
       collection(db, 'reservations'),
@@ -264,7 +256,6 @@ export async function returnBook(
     const readingSnapshot =
       await transaction.get(readingRef)
 
-    // Consultar las reservas antes de escribir.
     const activeReservations: Array<{
       id: string
       userId: string
@@ -319,20 +310,17 @@ export async function returnBook(
       )
     }
 
-    // Registrar devolución.
     transaction.update(loanRef, {
       status: 'returned',
       returnedAt: Timestamp.now(),
     })
 
-    // Libro disponible nuevamente.
     transaction.set(statusRef, {
       available: true,
       borrowedBy: null,
       activeLoanId: null,
     })
 
-    // Notificación interna para cada reservante.
     for (const reservation of activeReservations) {
       const notificationRef = doc(
         db,

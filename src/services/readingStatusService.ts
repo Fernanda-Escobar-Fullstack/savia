@@ -76,8 +76,6 @@ export function subscribeToReadingStatus(
   )
 }
 
-// Solo permite cambiar el progreso si el
-// usuario tiene un préstamo activo.
 export async function setReadingStatus(
   userId: string,
   book: BookDetails,
